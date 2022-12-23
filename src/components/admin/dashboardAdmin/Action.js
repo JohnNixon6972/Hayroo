@@ -53,6 +53,9 @@ export const uploadImage = async (image, dispatch) => {
   console.log(formData.get("image"));
   try {
     let responseData = await postUploadImage(formData);
+
+    
+
     if (responseData && responseData.success) {
       setTimeout(function () {
         dispatch({ type: "imageUpload", payload: false });
