@@ -29,60 +29,60 @@ const TableBody = ({ order }) => {
     <Fragment>
       <tr className="border-b">
         <td className="w-48 hover:bg-gray-200 p-2 flex flex-col space-y-1">
-          {order.allProduct.map((product, i) => {
+          {order?.allProduct?.map((product, i) => {
             return (
               <span className="block flex items-center space-x-2" key={i}>
                 <img
                   className="w-8 h-8 object-cover object-center"
-                  src={`${apiURL}/uploads/products/${product.id.pImages[0]}`}
+                  src={product?._id?.pImages?.[0]}
                   alt="productImage"
                 />
-                <span>{product.id.pName}</span>
-                <span>{product.quantitiy}x</span>
+                <span>{product?._id?.pName}</span>
+                <span>{product?.quantitiy}</span>
               </span>
             );
           })}
         </td>
         <td className="hover:bg-gray-200 p-2 text-center cursor-default">
-          {order.status === "Not processed" && (
+          {order?.status === "Not processed" && (
             <span className="block text-red-600 rounded-full text-center text-xs px-2 font-semibold">
-              {order.status}
+              {order?.status}
             </span>
           )}
-          {order.status === "Processing" && (
+          {order?.status === "Processing" && (
             <span className="block text-yellow-600 rounded-full text-center text-xs px-2 font-semibold">
-              {order.status}
+              {order?.status}
             </span>
           )}
-          {order.status === "Shipped" && (
+          {order?.status === "Shipped" && (
             <span className="block text-blue-600 rounded-full text-center text-xs px-2 font-semibold">
-              {order.status}
+              {order?.status}
             </span>
           )}
-          {order.status === "Delivered" && (
+          {order?.status === "Delivered" && (
             <span className="block text-green-600 rounded-full text-center text-xs px-2 font-semibold">
-              {order.status}
+              {order?.status}
             </span>
           )}
-          {order.status === "Cancelled" && (
+          {order?.status === "Cancelled" && (
             <span className="block text-red-600 rounded-full text-center text-xs px-2 font-semibold">
-              {order.status}
+              {order?.status}
             </span>
           )}
         </td>
         <td className="hover:bg-gray-200 p-2 text-center">
-          ${order.amount}.00
+        ₹{order?.amount}.00
         </td>
-        <td className="hover:bg-gray-200 p-2 text-center">{order.phone}</td>
-        <td className="hover:bg-gray-200 p-2 text-center">{order.address}</td>
+        <td className="hover:bg-gray-200 p-2 text-center">{order?.phone}</td>
+        <td className="hover:bg-gray-200 p-2 text-center">{order?.address}</td>
         <td className="hover:bg-gray-200 p-2 text-center">
-          {order.transactionId}
-        </td>
-        <td className="hover:bg-gray-200 p-2 text-center">
-          {moment(order.createdAt).format("lll")}
+          {order?.transactionId}
         </td>
         <td className="hover:bg-gray-200 p-2 text-center">
-          {moment(order.updatedAt).format("lll")}
+          {moment(order?.createdAt).format("lll")}
+        </td>
+        <td className="hover:bg-gray-200 p-2 text-center">
+          {moment(order?.updatedAt).format("lll")}
         </td>
       </tr>
     </Fragment>
@@ -98,7 +98,7 @@ const OrdersComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (data.loading) {
+  if (data?.loading) {
     return (
       <div className="w-full md:w-9/12 flex items-center justify-center py-24">
         <svg
@@ -130,8 +130,8 @@ const OrdersComponent = () => {
             <table className="table-auto border w-full my-2">
               <TableHeader />
               <tbody>
-                {orders && orders.length > 0 ? (
-                  orders.map((item, i) => {
+                {orders?.length > 0 ? (
+                  orders?.map((item, i) => {
                     return <TableBody key={i} order={item} />;
                   })
                 ) : (
@@ -147,7 +147,7 @@ const OrdersComponent = () => {
               </tbody>
             </table>
             <div className="text-sm text-gray-600 mt-2">
-              Total {orders && orders.length} order found
+              Total {orders?.length} order found
             </div>
           </div>
         </div>

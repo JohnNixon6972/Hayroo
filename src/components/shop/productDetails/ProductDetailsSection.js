@@ -98,9 +98,9 @@ const ProductDetailsSection = (props) => {
     <Fragment>
       <Submenu
         value={{
-          categoryId: sProduct.pCategory._id,
+          categoryId: sProduct.pCategory?._id,
           product: sProduct.pName,
-          category: sProduct.pCategory.cName,
+          category: sProduct.pCategory?.cName,
         }}
       />
       <section className="m-4 md:mx-12 md:my-6">
@@ -176,14 +176,57 @@ const ProductDetailsSection = (props) => {
             <div className="flex flex-col leading-8">
               <div className="text-2xl tracking-wider">{sProduct.pName}</div>
               <div className="flex justify-between items-center">
+                <div className="flex flex-col">
                 <span className="text-xl tracking-wider text-yellow-700">
-                  ${sProduct.pPrice}.00
+                ₹ {sProduct.pPrice}.00
                 </span>
+                <div className="flex items-center space-x-1">
+                    {[1, 2, 3, 4, 5].map((star) => {
+                      const hasReviews = sProduct.pRatingsReviews?.length > 0;
+                      const isFilled = hasReviews && star <= Math.round(sProduct.averageRating);
+
+                      return (
+                        <span key={star}>
+                          {isFilled ? (
+                            <svg
+                              className="w-4 h-4 text-yellow-700"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0L13 7.25l4.598.66c.969.14 1.356 1.33.655 2.01l-3.324 3.24.784 4.58c.165.968-.85 1.705-1.714 1.25L10 17.347l-4.099 2.153c-.863.454-1.878-.282-1.714-1.25l.784-4.58L1.646 9.92c-.7-.68-.313-1.87.655-2.01L7 7.25l2.049-4.323z" />
+                            </svg>
+                          ) : (
+                            <svg
+                              className="w-4 h-4 text-gray-600"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.518 4.674a1 1 0 00.951.69h4.915c.968 0 1.37 1.24.588 1.81l-3.976 2.888a1 1 0 00-.362 1.118l1.517 4.674c.3.922-.755 1.688-1.537 1.118l-3.977-2.888a1 1 0 00-1.175 0l-3.977 2.888c-.782.57-1.837-.196-1.537-1.118l1.517-4.674a1 1 0 00-.362-1.118L2.08 10.101c-.782-.57-.38-1.81.588-1.81h4.915a1 1 0 00.95-.69l1.518-4.674z"
+                              />
+                            </svg>
+                          )}
+                        </span>
+                      );
+                    })}
+                    {sProduct.averageRating > 0 && sProduct.pRatingsReviews?.length > 0 && (
+                      <span className="text-gray-700 ml-1 text-sm">
+                        {sProduct.averageRating.toFixed(1)}
+                      </span>
+                    )}
+                  </div>
+                  </div>
                 <span>
                   <svg
-                    onClick={(e) => isWishReq(e, sProduct._id, setWlist)}
+                    onClick={(e) => isWishReq(e, sProduct?._id, setWlist)}
                     className={`${
-                      isWish(sProduct._id, wList) && "hidden"
+                      isWish(sProduct?._id, wList) && "hidden"
                     } w-5 h-5 md:w-6 md:h-6 cursor-pointer text-yellow-700`}
                     fill="none"
                     stroke="currentColor"
@@ -198,9 +241,9 @@ const ProductDetailsSection = (props) => {
                     />
                   </svg>
                   <svg
-                    onClick={(e) => unWishReq(e, sProduct._id, setWlist)}
+                    onClick={(e) => unWishReq(e, sProduct?._id, setWlist)}
                     className={`${
-                      !isWish(sProduct._id, wList) && "hidden"
+                      !isWish(sProduct?._id, wList) && "hidden"
                     } w-5 h-5 md:w-6 md:h-6 cursor-pointer text-yellow-700`}
                     fill="currentColor"
                     viewBox="0 0 20 20"
@@ -241,9 +284,10 @@ const ProductDetailsSection = (props) => {
                   <Fragment>
                     {layoutData.inCart == null ||
                     (layoutData.inCart !== null &&
-                      layoutData.inCart.includes(sProduct._id) === false) ? (
+                      layoutData.inCart.includes(sProduct?._id) === false) ? (
                       <div className="flex items-center space-x-2">
                         <span
+                        className="cursor-pointer"
                           onClick={(e) =>
                             updateQuantity(
                               "decrease",
@@ -254,21 +298,11 @@ const ProductDetailsSection = (props) => {
                             )
                           }
                         >
-                          <svg
-                            className="w-5 h-5 fill-current cursor-pointer"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
+                          -
                         </span>
                         <span className="font-semibold">{quantitiy}</span>
                         <span
+                        className="cursor-pointer"
                           onClick={(e) =>
                             updateQuantity(
                               "increase",
@@ -279,7 +313,7 @@ const ProductDetailsSection = (props) => {
                             )
                           }
                         >
-                          <svg
+                          {/* <svg
                             className="w-5 h-5 fill-current cursor-pointer"
                             fill="currentColor"
                             viewBox="0 0 20 20"
@@ -290,7 +324,8 @@ const ProductDetailsSection = (props) => {
                               d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
                               clipRule="evenodd"
                             />
-                          </svg>
+                          </svg> */}
+                          +
                         </span>
                       </div>
                     ) : (
@@ -366,7 +401,7 @@ const ProductDetailsSection = (props) => {
               {sProduct.pQuantity !== 0 ? (
                 <Fragment>
                   {layoutData.inCart !== null &&
-                  layoutData.inCart.includes(sProduct._id) === true ? (
+                  layoutData.inCart.includes(sProduct?._id) === true ? (
                     <div
                       style={{ background: "#303031" }}
                       className={`px-4 py-2 text-white text-center cursor-not-allowed uppercase opacity-75`}
@@ -377,7 +412,7 @@ const ProductDetailsSection = (props) => {
                     <div
                       onClick={(e) =>
                         addToCart(
-                          sProduct._id,
+                          sProduct?._id,
                           quantitiy,
                           sProduct.pPrice,
                           layoutDispatch,
@@ -397,7 +432,7 @@ const ProductDetailsSection = (props) => {
               ) : (
                 <Fragment>
                   {layoutData.inCart !== null &&
-                  layoutData.inCart.includes(sProduct._id) === true ? (
+                  layoutData.inCart.includes(sProduct?._id) === true ? (
                     <div
                       style={{ background: "#303031" }}
                       className={`px-4 py-2 text-white text-center cursor-not-allowed uppercase opacity-75`}

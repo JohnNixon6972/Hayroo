@@ -261,7 +261,7 @@ const AddProductDetail = ({ categories }) => {
                     ? categories.map(function (elem) {
                         return (
                           <option name="status" value={elem._id} key={elem._id}>
-                            {elem.cName}
+                            {elem?.cName}
                           </option>
                         );
                       })

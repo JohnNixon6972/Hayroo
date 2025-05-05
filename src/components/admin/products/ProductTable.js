@@ -155,7 +155,7 @@ const ProductTable = ({ product, deleteProduct, editProduct }) => {
           )}
         </td>
         <td className="p-2 text-center">{product.pQuantity}</td>
-        <td className="p-2 text-center">{product.pCategory.cName}</td>
+        <td className="p-2 text-center">{product.pCategory?.cName}</td>
         <td className="p-2 text-center">{product.pOffer}</td>
         <td className="p-2 text-center">
           {moment(product.createdAt).format("lll")}
@@ -165,7 +165,7 @@ const ProductTable = ({ product, deleteProduct, editProduct }) => {
         </td>
         <td className="p-2 flex items-center justify-center">
           <span
-            onClick={(e) => editProduct(product._id, product, true)}
+            onClick={(e) => editProduct(product?._id, product, true)}
             className="cursor-pointer hover:bg-gray-200 rounded-lg p-2 mx-1"
           >
             <svg
@@ -183,7 +183,7 @@ const ProductTable = ({ product, deleteProduct, editProduct }) => {
             </svg>
           </span>
           <span
-            onClick={(e) => deleteProduct(product._id)}
+            onClick={(e) => deleteProduct(product?._id)}
             className="cursor-pointer hover:bg-gray-200 rounded-lg p-2 mx-1"
           >
             <svg
