@@ -139,7 +139,7 @@ const AddCategoryModal = (props) => {
                     cName: e.target.value,
                   })
                 }
-                value={fData.cName}
+                value={fData?.cName}
                 className="px-4 py-2 border focus:outline-none"
                 type="text"
               />

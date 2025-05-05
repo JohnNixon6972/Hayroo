@@ -52,7 +52,6 @@ export const createProduct = async ({
 };
 
 export const editProduct = async (product) => {
-  console.log(product);
   /* Most important part for updating multiple image  */
   let formData = new FormData();
   if (product.pEditImages) {
@@ -65,7 +64,7 @@ export const editProduct = async (product) => {
   formData.append("pName", product.pName);
   formData.append("pDescription", product.pDescription);
   formData.append("pStatus", product.pStatus);
-  formData.append("pCategory", product.pCategory._id);
+  formData.append("pCategory", product.pCategory);
   formData.append("pQuantity", product.pQuantity);
   formData.append("pPrice", product.pPrice);
   formData.append("pOffer", product.pOffer);

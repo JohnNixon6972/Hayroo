@@ -74,35 +74,56 @@ const SingleProduct = (props) => {
                     {item.pName}
                   </div>
                   <div className="flex items-center space-x-1">
-                    <span>
-                      <svg
-                        className="w-4 h-4 fill-current text-yellow-700"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                        />
-                      </svg>
-                    </span>
-                    <span className="text-gray-700">
-                      {item.pRatingsReviews.length}
-                    </span>
+                    {[1, 2, 3, 4, 5].map((star) => {
+                      const hasReviews = item.pRatingsReviews?.length > 0;
+                      const isFilled = hasReviews && star <= Math.round(item.averageRating);
+
+                      return (
+                        <span key={star}>
+                          {isFilled ? (
+                            <svg
+                              className="w-4 h-4 text-yellow-700"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0L13 7.25l4.598.66c.969.14 1.356 1.33.655 2.01l-3.324 3.24.784 4.58c.165.968-.85 1.705-1.714 1.25L10 17.347l-4.099 2.153c-.863.454-1.878-.282-1.714-1.25l.784-4.58L1.646 9.92c-.7-.68-.313-1.87.655-2.01L7 7.25l2.049-4.323z" />
+                            </svg>
+                          ) : (
+                            <svg
+                              className="w-4 h-4 text-gray-600"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.518 4.674a1 1 0 00.951.69h4.915c.968 0 1.37 1.24.588 1.81l-3.976 2.888a1 1 0 00-.362 1.118l1.517 4.674c.3.922-.755 1.688-1.537 1.118l-3.977-2.888a1 1 0 00-1.175 0l-3.977 2.888c-.782.57-1.837-.196-1.537-1.118l1.517-4.674a1 1 0 00-.362-1.118L2.08 10.101c-.782-.57-.38-1.81.588-1.81h4.915a1 1 0 00.95-.69l1.518-4.674z"
+                              />
+                            </svg>
+                          )}
+                        </span>
+                      );
+                    })}
+                    {item.averageRating > 0 && item.pRatingsReviews?.length > 0 && (
+                      <span className="text-gray-700 ml-1 text-sm">
+                        {item.averageRating.toFixed(1)}
+                      </span>
+                    )}
                   </div>
+
+
                 </div>
-                <div>${item.pPrice}.00</div>
+                <div>₹ {item.pPrice}.00</div>
                 {/* WhisList Logic  */}
                 <div className="absolute top-0 right-0 mx-2 my-2 md:mx-4">
                   <svg
                     onClick={(e) => isWishReq(e, item._id, setWlist)}
-                    className={`${
-                      isWish(item._id, wList) && "hidden"
-                    } w-5 h-5 md:w-6 md:h-6 cursor-pointer text-yellow-700 transition-all duration-300 ease-in`}
+                    className={`${isWish(item._id, wList) && "hidden"
+                      } w-5 h-5 md:w-6 md:h-6 cursor-pointer text-yellow-700 transition-all duration-300 ease-in`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -117,9 +138,8 @@ const SingleProduct = (props) => {
                   </svg>
                   <svg
                     onClick={(e) => unWishReq(e, item._id, setWlist)}
-                    className={`${
-                      !isWish(item._id, wList) && "hidden"
-                    } w-5 h-5 md:w-6 md:h-6 cursor-pointer text-yellow-700 transition-all duration-300 ease-in`}
+                    className={`${!isWish(item._id, wList) && "hidden"
+                      } w-5 h-5 md:w-6 md:h-6 cursor-pointer text-yellow-700 transition-all duration-300 ease-in`}
                     fill="currentColor"
                     viewBox="0 0 20 20"
                     xmlns="http://www.w3.org/2000/svg"
