@@ -2,6 +2,8 @@ import React, { Fragment, useContext, useState, useEffect } from "react";
 import { ProductContext } from "./index";
 import { createProduct, getAllProduct } from "./FetchApi";
 import { getAllCategory } from "../categories/FetchApi";
+import { uploadImages } from "../../../utils/uploadImages";
+
 
 const AddProductDetail = ({ categories }) => {
   const { data, dispatch } = useContext(ProductContext);
@@ -14,7 +16,7 @@ const AddProductDetail = ({ categories }) => {
     pName: "",
     pDescription: "",
     pStatus: "Active",
-    pImage: null, // Initial value will be null or empty array
+    pImage: null,
     pCategory: "",
     pPrice: "",
     pOffer: 0,
@@ -35,26 +37,40 @@ const AddProductDetail = ({ categories }) => {
     }, 1000);
   };
 
+  const removeImage = (indexToRemove) => {
+    const newFiles = fData.pImage.filter((_, index) => index !== indexToRemove);
+    setFdata({
+      ...fData,
+      pImage: newFiles,
+    });
+  };
+
   const submitForm = async (e) => {
     e.preventDefault();
     e.target.reset();
-
-    if (!fData.pImage) {
-      setFdata({ ...fData, error: "Please upload at least 2 image" });
+  
+    if (!fData.pImage || fData.pImage.length < 2) {
+      setFdata({ ...fData, error: "Please upload at least 2 images" });
       setTimeout(() => {
         setFdata({ ...fData, error: false });
       }, 2000);
+      return;
     }
-
+  
     try {
-      let responseData = await createProduct(fData);
+      console.log(fData.pImage,"image")
+      const imageUrls = await uploadImages(fData.pImage);
+      const updatedProductData = { ...fData, pImage: imageUrls };
+  
+      let responseData = await createProduct(updatedProductData);
+  
       if (responseData.success) {
         fetchData();
         setFdata({
           ...fData,
           pName: "",
           pDescription: "",
-          pImage: "",
+          pImage: null,
           pStatus: "Active",
           pCategory: "",
           pPrice: "",
@@ -68,7 +84,7 @@ const AddProductDetail = ({ categories }) => {
             ...fData,
             pName: "",
             pDescription: "",
-            pImage: "",
+            pImage: null,
             pStatus: "Active",
             pCategory: "",
             pPrice: "",
@@ -85,22 +101,19 @@ const AddProductDetail = ({ categories }) => {
         }, 2000);
       }
     } catch (error) {
-      console.log(error);
+      console.error("Product creation failed", error);
+      setFdata({ ...fData, error: "Image upload failed", success: false });
     }
   };
 
   return (
     <Fragment>
-      {/* Black Overlay */}
       <div
         onClick={(e) => dispatch({ type: "addProductModal", payload: false })}
         className={`${
           data.addProductModal ? "" : "hidden"
         } fixed top-0 left-0 z-30 w-full h-full bg-black opacity-50`}
       />
-      {/* End Black Overlay */}
-
-      {/* Modal Start */}
       <div
         className={`${
           data.addProductModal ? "" : "hidden"
@@ -111,7 +124,6 @@ const AddProductDetail = ({ categories }) => {
             <span className="text-left font-semibold text-2xl tracking-wider">
               Add Product
             </span>
-            {/* Close Modal */}
             <span
               style={{ background: "#303031" }}
               onClick={(e) =>
@@ -192,27 +204,48 @@ const AddProductDetail = ({ categories }) => {
                 rows={2}
               />
             </div>
-            {/* Most Important part for uploading multiple image */}
             <div className="flex flex-col mt-4">
               <label htmlFor="image">Product Images *</label>
               <span className="text-gray-600 text-xs">Must need 2 images</span>
               <input
-                onChange={(e) =>
-                  setFdata({
-                    ...fData,
-                    error: false,
-                    success: false,
-                    pImage: [...e.target.files],
-                  })
-                }
+                onChange={(e) => {
+                  if (e.target.files.length > 0) {
+                    const newFiles = fData.pImage ? [...fData.pImage, ...e.target.files] : [...e.target.files];
+                    setFdata({
+                      ...fData,
+                      error: false,
+                      success: false,
+                      pImage: newFiles,
+                    });
+                  }
+                }}
                 type="file"
                 accept=".jpg, .jpeg, .png"
                 className="px-4 py-2 border focus:outline-none"
                 id="image"
                 multiple
               />
+
+              {fData.pImage && fData.pImage.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-sm">Selected files:</p>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {Array.from(fData.pImage).map((file, index) => (
+                      <div key={index} className="flex items-center bg-gray-100 px-2 py-1 rounded">
+                        <span className="text-sm mr-2">{file.name}</span>
+                        <button 
+                          type="button" 
+                          onClick={() => removeImage(index)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-            {/* Most Important part for uploading multiple image */}
             <div className="flex space-x-1 py-4">
               <div className="w-1/2 flex flex-col space-y-1">
                 <label htmlFor="status">Product Status *</label>
@@ -326,7 +359,7 @@ const AddProductModal = (props) => {
     fetchCategoryData();
   }, []);
 
-  const [allCat, setAllCat] = useState({});
+  const [allCat, setAllCat] = useState([]);
 
   const fetchCategoryData = async () => {
     let responseData = await getAllCategory();
