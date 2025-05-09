@@ -137,11 +137,13 @@ const ProductTable = ({ product, deleteProduct, editProduct }) => {
           {product.pDescription.slice(0, 15)}...
         </td>
         <td className="p-2 text-center">
-          <img
-            className="w-12 h-12 object-cover object-center"
-            src={`${product.pImages[0]}`}
-            alt="pic"
-          />
+        <img
+        className="w-12 h-12 object-cover object-center"
+        src={`https://firebasestorage.googleapis.com/v0/b/${process.env.REACT_APP_STORAGE_BUCKET}/o/${encodeURIComponent(
+          product.pImages[0]
+        )}?alt=media`}
+        alt="product"
+      />
         </td>
         <td className="p-2 text-center">
           {product.pStatus === "Active" ? (

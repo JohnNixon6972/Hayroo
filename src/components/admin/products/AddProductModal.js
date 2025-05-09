@@ -7,6 +7,7 @@ import { uploadImages } from "../../../utils/uploadImages";
 
 const AddProductDetail = ({ categories }) => {
   const { data, dispatch } = useContext(ProductContext);
+  const [loading, setLoading] = useState(false);
 
   const alert = (msg, type) => (
     <div className={`bg-${type}-200 py-2 px-4 w-full`}>{msg}</div>
@@ -48,7 +49,16 @@ const AddProductDetail = ({ categories }) => {
   const submitForm = async (e) => {
     e.preventDefault();
     e.target.reset();
-  
+
+    if (!fData.pName || !fData.pDescription || !fData.pCategory ||
+      !fData.pPrice || !fData.pQuantity) {
+      setFdata({ ...fData, error: "Please fill all required fields" });
+      setTimeout(() => {
+        setFdata({ ...fData, error: false });
+      }, 2000);
+      return;
+    }
+
     if (!fData.pImages || fData.pImages.length < 2) {
       setFdata({ ...fData, error: "Please upload at least 2 images" });
       setTimeout(() => {
@@ -56,14 +66,21 @@ const AddProductDetail = ({ categories }) => {
       }, 2000);
       return;
     }
-  
+
+    setLoading(true); 
+
     try {
-      console.log(fData.pImages,"image")
       const imageUrls = await uploadImages(fData.pImages);
-      const updatedProductData = { ...fData, pImages: imageUrls };
-  
+      const updatedProductData = {
+        ...fData,
+        pImages: imageUrls,
+        pPrice: parseFloat(fData.pPrice),
+        pQuantity: parseInt(fData.pQuantity),
+        pOffer: parseFloat(fData.pOffer || 0)
+      };
+
       let responseData = await createProduct(updatedProductData);
-  
+
       if (responseData.success) {
         fetchData();
         setFdata({
@@ -82,16 +99,7 @@ const AddProductDetail = ({ categories }) => {
         setTimeout(() => {
           setFdata({
             ...fData,
-            pName: "",
-            pDescription: "",
-            pImages: null,
-            pStatus: "Active",
-            pCategory: "",
-            pPrice: "",
-            pQuantity: "",
-            pOffer: 0,
             success: false,
-            error: false,
           });
         }, 2000);
       } else if (responseData.error) {
@@ -102,7 +110,9 @@ const AddProductDetail = ({ categories }) => {
       }
     } catch (error) {
       console.error("Product creation failed", error);
-      setFdata({ ...fData, error: "Image upload failed", success: false });
+      setFdata({ ...fData, error: "Product creation failed", success: false });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -110,14 +120,12 @@ const AddProductDetail = ({ categories }) => {
     <Fragment>
       <div
         onClick={(e) => dispatch({ type: "addProductModal", payload: false })}
-        className={`${
-          data.addProductModal ? "" : "hidden"
-        } fixed top-0 left-0 z-30 w-full h-full bg-black opacity-50`}
+        className={`${data.addProductModal ? "" : "hidden"
+          } fixed top-0 left-0 z-30 w-full h-full bg-black opacity-50`}
       />
       <div
-        className={`${
-          data.addProductModal ? "" : "hidden"
-        } fixed inset-0 flex items-center z-30 justify-center overflow-auto`}
+        className={`${data.addProductModal ? "" : "hidden"
+          } fixed inset-0 flex items-center z-30 justify-center overflow-auto`}
       >
         <div className="mt-32 md:mt-0 relative bg-white w-11/12 md:w-3/6 shadow-lg flex flex-col items-center space-y-4 px-4 py-4 md:px-8">
           <div className="flex items-center justify-between w-full pt-4">
@@ -233,8 +241,8 @@ const AddProductDetail = ({ categories }) => {
                     {Array.from(fData.pImages).map((file, index) => (
                       <div key={index} className="flex items-center bg-gray-100 px-2 py-1 rounded">
                         <span className="text-sm mr-2">{file.name}</span>
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => removeImage(index)}
                           className="text-red-500 hover:text-red-700"
                         >
@@ -292,12 +300,12 @@ const AddProductDetail = ({ categories }) => {
                   </option>
                   {categories.length > 0
                     ? categories.map(function (elem) {
-                        return (
-                          <option name="status" value={elem._id} key={elem._id}>
-                            {elem?.cName}
-                          </option>
-                        );
-                      })
+                      return (
+                        <option name="status" value={elem._id} key={elem._id}>
+                          {elem?.cName}
+                        </option>
+                      );
+                    })
                     : ""}
                 </select>
               </div>
@@ -342,9 +350,20 @@ const AddProductDetail = ({ categories }) => {
               <button
                 style={{ background: "#303031" }}
                 type="submit"
-                className="rounded-full bg-gray-800 text-gray-100 text-lg font-medium py-2"
+                className="rounded-full bg-gray-800 text-gray-100 text-lg font-medium py-2 flex items-center justify-center"
+                disabled={loading}
               >
-                Create product
+                {loading ? (
+                  <Fragment>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating Product...
+                  </Fragment>
+                ) : (
+                  "Create product"
+                )}
               </button>
             </div>
           </form>
