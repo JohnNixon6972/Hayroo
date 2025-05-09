@@ -16,7 +16,7 @@ const AddProductDetail = ({ categories }) => {
     pName: "",
     pDescription: "",
     pStatus: "Active",
-    pImage: null,
+    pImages: null,
     pCategory: "",
     pPrice: "",
     pOffer: 0,
@@ -38,10 +38,10 @@ const AddProductDetail = ({ categories }) => {
   };
 
   const removeImage = (indexToRemove) => {
-    const newFiles = fData.pImage.filter((_, index) => index !== indexToRemove);
+    const newFiles = fData.pImages.filter((_, index) => index !== indexToRemove);
     setFdata({
       ...fData,
-      pImage: newFiles,
+      pImages: newFiles,
     });
   };
 
@@ -49,7 +49,7 @@ const AddProductDetail = ({ categories }) => {
     e.preventDefault();
     e.target.reset();
   
-    if (!fData.pImage || fData.pImage.length < 2) {
+    if (!fData.pImages || fData.pImages.length < 2) {
       setFdata({ ...fData, error: "Please upload at least 2 images" });
       setTimeout(() => {
         setFdata({ ...fData, error: false });
@@ -58,9 +58,9 @@ const AddProductDetail = ({ categories }) => {
     }
   
     try {
-      console.log(fData.pImage,"image")
-      const imageUrls = await uploadImages(fData.pImage);
-      const updatedProductData = { ...fData, pImage: imageUrls };
+      console.log(fData.pImages,"image")
+      const imageUrls = await uploadImages(fData.pImages);
+      const updatedProductData = { ...fData, pImages: imageUrls };
   
       let responseData = await createProduct(updatedProductData);
   
@@ -70,7 +70,7 @@ const AddProductDetail = ({ categories }) => {
           ...fData,
           pName: "",
           pDescription: "",
-          pImage: null,
+          pImages: null,
           pStatus: "Active",
           pCategory: "",
           pPrice: "",
@@ -84,7 +84,7 @@ const AddProductDetail = ({ categories }) => {
             ...fData,
             pName: "",
             pDescription: "",
-            pImage: null,
+            pImages: null,
             pStatus: "Active",
             pCategory: "",
             pPrice: "",
@@ -210,12 +210,12 @@ const AddProductDetail = ({ categories }) => {
               <input
                 onChange={(e) => {
                   if (e.target.files.length > 0) {
-                    const newFiles = fData.pImage ? [...fData.pImage, ...e.target.files] : [...e.target.files];
+                    const newFiles = fData.pImages ? [...fData.pImages, ...e.target.files] : [...e.target.files];
                     setFdata({
                       ...fData,
                       error: false,
                       success: false,
-                      pImage: newFiles,
+                      pImages: newFiles,
                     });
                   }
                 }}
@@ -226,11 +226,11 @@ const AddProductDetail = ({ categories }) => {
                 multiple
               />
 
-              {fData.pImage && fData.pImage.length > 0 && (
+              {fData.pImages && fData.pImages.length > 0 && (
                 <div className="mt-2">
                   <p className="text-sm">Selected files:</p>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    {Array.from(fData.pImage).map((file, index) => (
+                    {Array.from(fData.pImages).map((file, index) => (
                       <div key={index} className="flex items-center bg-gray-100 px-2 py-1 rounded">
                         <span className="text-sm mr-2">{file.name}</span>
                         <button 
