@@ -2,23 +2,21 @@ import React, { Fragment, useContext, useState, useEffect } from "react";
 import { ProductContext } from "./index";
 import { editProduct, getAllProduct } from "./FetchApi";
 import { getAllCategory } from "../categories/FetchApi";
-const apiURL = process.env.REACT_APP_API_URL;
+import { replaceImages } from "../../../utils/replaceImages";
 
 const EditProductModal = (props) => {
   const { data, dispatch } = useContext(ProductContext);
-
   const [categories, setCategories] = useState(null);
-
-  const alert = (msg, type) => (
-    <div className={`bg-${type}-200 py-2 px-4 w-full`}>{msg}</div>
-  );
+  const [deletedImages, setDeletedImages] = useState([]);
+  const [newImages, setNewImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [editformData, setEditformdata] = useState({
     pId: "",
     pName: "",
     pDescription: "",
-    pImages: null,
-    pEditImages: null,
+    pImages: [],
     pStatus: "",
     pCategory: "",
     pQuantity: "",
@@ -28,239 +26,273 @@ const EditProductModal = (props) => {
     success: false,
   });
 
+  // Fetch categories and initialize form data
   useEffect(() => {
+    const fetchCategoryData = async () => {
+      const responseData = await getAllCategory();
+      if (responseData.Categories) {
+        setCategories(responseData.Categories);
+      }
+    };
     fetchCategoryData();
-  }, []);
 
-  const fetchCategoryData = async () => {
-    let responseData = await getAllCategory();
-    if (responseData.Categories) {
-      setCategories(responseData.Categories);
+    if (data.editProductModal.pImages) {
+      setEditformdata({
+        ...data.editProductModal,
+        pImages: data.editProductModal.pImages || []
+      });
+      setDeletedImages([]);
+      setNewImages([]);
+      setImagePreviews([]);
     }
-  };
-
-  useEffect(() => {
-    setEditformdata({
-      pId: data.editProductModal.pId,
-      pName: data.editProductModal.pName,
-      pDescription: data.editProductModal.pDescription,
-      pImages: data.editProductModal.pImages,
-      pStatus: data.editProductModal.pStatus,
-      pCategory: data.editProductModal.pCategory,
-      pQuantity: data.editProductModal.pQuantity,
-      pPrice: data.editProductModal.pPrice,
-      pOffer: data.editProductModal.pOffer,
-    });
   }, [data.editProductModal]);
 
-  const fetchData = async () => {
-    let responseData = await getAllProduct();
-    if (responseData && responseData.Products) {
-      dispatch({
-        type: "fetchProductsAndChangeState",
-        payload: responseData.Products,
+  const handleDeleteImage = (index) => {
+    const updatedImages = [...editformData.pImages];
+    const deletedImage = updatedImages.splice(index, 1)[0];
+    setDeletedImages([...deletedImages, deletedImage]);
+    setEditformdata({ ...editformData, pImages: updatedImages });
+  };
+
+  const handleNewImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    const totalImages = editformData.pImages.length + files.length;
+
+    if (totalImages > 2) {
+      setEditformdata({
+        ...editformData,
+        error: "Maximum 2 images allowed",
+        success: false,
       });
+      return;
     }
+
+    const previews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews([...imagePreviews, ...previews]);
+    setNewImages([...newImages, ...files]);
+    e.target.value = ''; // Reset file input
+  };
+
+  const removeNewImage = (index) => {
+    const updatedPreviews = [...imagePreviews];
+    const updatedFiles = [...newImages];
+
+    URL.revokeObjectURL(updatedPreviews[index]);
+    updatedPreviews.splice(index, 1);
+    updatedFiles.splice(index, 1);
+
+    setImagePreviews(updatedPreviews);
+    setNewImages(updatedFiles);
   };
 
   const submitForm = async (e) => {
     e.preventDefault();
-    if (!editformData.pEditImages) {
-      console.log("Image Not upload=============", editformData);
-    } else {
-      console.log("Image uploading");
-    }
+    setIsSubmitting(true);
+
     try {
-      let responseData = await editProduct(editformData);
+      let finalImages = [...editformData.pImages];
+
+      if (deletedImages.length > 0 || newImages.length > 0) {
+        const uploadedPaths = await replaceImages(deletedImages, newImages, "products")
+
+        finalImages = [...finalImages, ...uploadedPaths];
+        finalImages = finalImages.slice(0, 2);
+      }
+
+      const productData = {
+        _id: editformData.pId,
+        pName: editformData.pName,
+        pDescription: editformData.pDescription,
+        pImages: finalImages,
+        pStatus: editformData.pStatus,
+        pCategory: editformData.pCategory,
+        pQuantity: editformData.pQuantity,
+        pPrice: editformData.pPrice,
+        pOffer: editformData.pOffer
+      };
+
+      const responseData = await editProduct(productData);
+
       if (responseData.success) {
-        fetchData();
-        setEditformdata({ ...editformData, success: responseData.success });
+        const updatedProducts = await getAllProduct();
+        dispatch({
+          type: "fetchProductsAndChangeState",
+          payload: updatedProducts.Products,
+        });
+
+        setEditformdata({ ...editformData, success: "Product updated successfully!" });
         setTimeout(() => {
-          return setEditformdata({
-            ...editformData,
-            success: responseData.success,
-          });
-        }, 2000);
-      } else if (responseData.error) {
+          dispatch({ type: "editProductModalClose", payload: false });
+        }, 1500);
+      } else {
         setEditformdata({ ...editformData, error: responseData.error });
-        setTimeout(() => {
-          return setEditformdata({
-            ...editformData,
-            error: responseData.error,
-          });
-        }, 2000);
       }
     } catch (error) {
-      console.log(error);
+      console.error("Product update failed:", error);
+      setEditformdata({
+        ...editformData,
+        error: "Failed to update product. Please try again."
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach(preview => URL.revokeObjectURL(preview));
+    };
+  }, [imagePreviews]);
+
   return (
     <Fragment>
-      {/* Black Overlay */}
+      {/* Modal Overlay */}
       <div
-        onClick={(e) =>
-          dispatch({ type: "editProductModalClose", payload: false })
-        }
-        className={`${
-          data.editProductModal.modal ? "" : "hidden"
-        } fixed top-0 left-0 z-30 w-full h-full bg-black opacity-50`}
+        onClick={() => dispatch({ type: "editProductModalClose", payload: false })}
+        className={`${data.editProductModal.modal ? "" : "hidden"} fixed inset-0 bg-black opacity-50 z-30`}
       />
-      {/* End Black Overlay */}
 
-      {/* Modal Start */}
-      <div
-        className={`${
-          data.editProductModal.modal ? "" : "hidden"
-        } fixed inset-0 flex items-center z-30 justify-center overflow-auto`}
-      >
-        <div className="mt-32 md:mt-0 relative bg-white w-11/12 md:w-3/6 shadow-lg flex flex-col items-center space-y-4 px-4 py-4 md:px-8">
-          <div className="flex items-center justify-between w-full pt-4">
-            <span className="text-left font-semibold text-2xl tracking-wider">
-              Edit Product
-            </span>
-            {/* Close Modal */}
-            <span
-              style={{ background: "#303031" }}
-              onClick={(e) =>
-                dispatch({ type: "editProductModalClose", payload: false })
-              }
-              className="cursor-pointer text-gray-100 py-2 px-2 rounded-full"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+      {/* Modal Content */}
+      <div className={`${data.editProductModal.modal ? "" : "hidden"} fixed inset-0 flex items-center justify-center z-40`}>
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">Edit Product</h3>
+              <button
+                onClick={() => dispatch({ type: "editProductModalClose", payload: false })}
+                className="text-gray-500 hover:text-gray-700"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </span>
-          </div>
-          {editformData.error ? alert(editformData.error, "red") : ""}
-          {editformData.success ? alert(editformData.success, "green") : ""}
-          <form className="w-full" onSubmit={(e) => submitForm(e)}>
-            <div className="flex space-x-1 py-4">
-              <div className="w-1/2 flex flex-col space-y-1 space-x-1">
-                <label htmlFor="name">Product Name *</label>
-                <input
-                  value={editformData.pName}
-                  onChange={(e) =>
-                    setEditformdata({
-                      ...editformData,
-                      error: false,
-                      success: false,
-                      pName: e.target.value,
-                    })
-                  }
-                  className="px-4 py-2 border focus:outline-none"
-                  type="text"
-                />
-              </div>
-              <div className="w-1/2 flex flex-col space-y-1 space-x-1">
-                <label htmlFor="price">Product Price *</label>
-                <input
-                  value={editformData.pPrice}
-                  onChange={(e) =>
-                    setEditformdata({
-                      ...editformData,
-                      error: false,
-                      success: false,
-                      pPrice: e.target.value,
-                    })
-                  }
-                  type="number"
-                  className="px-4 py-2 border focus:outline-none"
-                  id="price"
-                />
-              </div>
+                &times;
+              </button>
             </div>
-            <div className="flex flex-col space-y-2">
-              <label htmlFor="description">Product Description *</label>
-              <textarea
-                value={editformData.pDescription}
-                onChange={(e) =>
-                  setEditformdata({
-                    ...editformData,
-                    error: false,
-                    success: false,
-                    pDescription: e.target.value,
-                  })
-                }
-                className="px-4 py-2 border focus:outline-none"
-                name="description"
-                id="description"
-                cols={5}
-                rows={2}
-              />
-            </div>
-            {/* Most Important part for uploading multiple image */}
-            <div className="flex flex-col mt-4">
-              <label htmlFor="image">Product Images *</label>
-              {editformData.pImages ? (
-                <div className="flex space-x-1">
-                  <img
-                    className="h-16 w-16 object-cover"
-                    src={`${apiURL}/uploads/products/${editformData.pImages[0]}`}
-                    alt="productImage"
-                  />
-                  <img
-                    className="h-16 w-16 object-cover"
-                    src={`${apiURL}/uploads/products/${editformData.pImages[1]}`}
-                    alt="productImage"
+
+            {editformData.error && (
+              <div className="bg-red-100 text-red-700 p-3 mb-4 rounded">
+                {editformData.error}
+              </div>
+            )}
+            {editformData.success && (
+              <div className="bg-green-100 text-green-700 p-3 mb-4 rounded">
+                {editformData.success}
+              </div>
+            )}
+
+            <form onSubmit={submitForm}>
+              {/* Product Details Form Fields */}
+              <div className="flex space-x-1 py-4">
+                <div className="w-1/2 flex flex-col space-y-1 space-x-1">
+                  <label htmlFor="name">Product Name *</label>
+                  <input
+                    value={editformData.pName}
+                    onChange={(e) =>
+                      setEditformdata({
+                        ...editformData,
+                        error: false,
+                        success: false,
+                        pName: e.target.value,
+                      })
+                    }
+                    className="px-4 py-2 border focus:outline-none"
+                    type="text"
                   />
                 </div>
-              ) : (
-                ""
-              )}
-              <span className="text-gray-600 text-xs">Must need 2 images</span>
-              <input
-                onChange={(e) =>
-                  setEditformdata({
-                    ...editformData,
-                    error: false,
-                    success: false,
-                    pEditImages: [...e.target.files],
-                  })
-                }
-                type="file"
-                accept=".jpg, .jpeg, .png"
-                className="px-4 py-2 border focus:outline-none"
-                id="image"
-                multiple
-              />
-            </div>
-            {/* Most Important part for uploading multiple image */}
-            <div className="flex space-x-1 py-4">
-              <div className="w-1/2 flex flex-col space-y-1">
-                <label htmlFor="status">Product Status *</label>
-                <select
-                  value={editformData.pStatus}
+                <div className="w-1/2 flex flex-col space-y-1 space-x-1">
+                  <label htmlFor="price">Product Price *</label>
+                  <input
+                    value={editformData.pPrice}
+                    onChange={(e) =>
+                      setEditformdata({
+                        ...editformData,
+                        error: false,
+                        success: false,
+                        pPrice: e.target.value,
+                      })
+                    }
+                    type="number"
+                    className="px-4 py-2 border focus:outline-none"
+                    id="price"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col space-y-2">
+                <label htmlFor="description">Product Description *</label>
+                <textarea
+                  value={editformData.pDescription}
                   onChange={(e) =>
                     setEditformdata({
                       ...editformData,
                       error: false,
                       success: false,
-                      pStatus: e.target.value,
+                      pDescription: e.target.value,
                     })
                   }
-                  name="status"
                   className="px-4 py-2 border focus:outline-none"
-                  id="status"
-                >
-                  <option name="status" value="Active">
-                    Active
-                  </option>
-                  <option name="status" value="Disabled">
-                    Disabled
-                  </option>
-                </select>
+                  name="description"
+                  id="description"
+                  cols={5}
+                  rows={2}
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-2">
+                  Product Images (Max 2)
+                </label>
+
+                <div className="flex flex-wrap gap-4 mb-4">
+                  {editformData.pImages.map((img, index) => (
+                    <div key={`existing-${index}`} className="relative">
+                      <img
+                        src={`https://firebasestorage.googleapis.com/v0/b/${process.env.REACT_APP_STORAGE_BUCKET}/o/${encodeURIComponent(img)}?alt=media`}
+                        alt={`Product ${index}`}
+                        className="w-24 h-24 object-cover rounded border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteImage(index)}
+                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center transform translate-x-1/2 -translate-y-1/2 hover:bg-red-600"
+                        aria-label="Delete image"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+
+                  {imagePreviews.map((preview, index) => (
+                    <div key={`new-${index}`} className="relative group">
+                      <img
+                        src={preview}
+                        alt={`New image ${index}`}
+                        className="w-24 h-24 object-cover rounded border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeNewImage(index)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remove image"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <label className="flex flex-col items-center px-4 py-2 bg-white rounded border border-gray-300 cursor-pointer hover:bg-gray-50">
+                    <span className="text-sm">Upload Images</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleNewImageUpload}
+                      className="hidden"
+                      disabled={editformData.pImages.length + newImages.length >= 2}
+                    />
+                  </label>
+                  <span className="text-sm text-gray-500">
+                    {editformData.pImages.length + newImages.length}/2 images selected
+                  </span>
+                </div>
               </div>
               <div className="w-1/2 flex flex-col space-y-1">
                 <label htmlFor="status">Product Category *</label>
@@ -282,80 +314,88 @@ const EditProductModal = (props) => {
                   </option>
                   {categories && categories.length > 0
                     ? categories.map((elem) => {
-                        return (
-                          <Fragment key={elem?._id}>
-                            {editformData.pCategory?._id &&
+                      return (
+                        <Fragment key={elem?._id}>
+                          {editformData.pCategory?._id &&
                             editformData.pCategory?._id === elem?._id ? (
-                              <option
-                                name="status"
-                                value={elem?._id}
-                                key={elem?._id}
-                                selected
-                              >
-                                {elem?.cName}
-                              </option>
-                            ) : (
-                              <option
-                                name="status"
-                                value={elem?._id}
-                                key={elem?._id}
-                              >
-                                {elem?.cName}
-                              </option>
-                            )}
-                          </Fragment>
-                        );
-                      })
+                            <option
+                              name="status"
+                              value={elem?._id}
+                              key={elem?._id}
+                              selected
+                            >
+                              {elem?.cName}
+                            </option>
+                          ) : (
+                            <option
+                              name="status"
+                              value={elem?._id}
+                              key={elem?._id}
+                            >
+                              {elem?.cName}
+                            </option>
+                          )}
+                        </Fragment>
+                      );
+                    })
                     : ""}
                 </select>
               </div>
-            </div>
-            <div className="flex space-x-1 py-4">
-              <div className="w-1/2 flex flex-col space-y-1">
-                <label htmlFor="quantity">Product in Stock *</label>
-                <input
-                  value={editformData.pQuantity}
-                  onChange={(e) =>
-                    setEditformdata({
-                      ...editformData,
-                      error: false,
-                      success: false,
-                      pQuantity: e.target.value,
-                    })
-                  }
-                  type="number"
-                  className="px-4 py-2 border focus:outline-none"
-                  id="quantity"
-                />
+              <div className="flex space-x-1 py-4">
+                <div className="w-1/2 flex flex-col space-y-1">
+                  <label htmlFor="quantity">Product in Stock *</label>
+                  <input
+                    value={editformData.pQuantity}
+                    onChange={(e) =>
+                      setEditformdata({
+                        ...editformData,
+                        error: false,
+                        success: false,
+                        pQuantity: e.target.value,
+                      })
+                    }
+                    type="number"
+                    className="px-4 py-2 border focus:outline-none"
+                    id="quantity"
+                  />
+                </div>
+                <div className="w-1/2 flex flex-col space-y-1">
+                  <label htmlFor="offer">Product Offfer (%) *</label>
+                  <input
+                    value={editformData.pOffer}
+                    onChange={(e) =>
+                      setEditformdata({
+                        ...editformData,
+                        error: false,
+                        success: false,
+                        pOffer: e.target.value,
+                      })
+                    }
+                    type="number"
+                    className="px-4 py-2 border focus:outline-none"
+                    id="offer"
+                  />
+                </div>
               </div>
-              <div className="w-1/2 flex flex-col space-y-1">
-                <label htmlFor="offer">Product Offfer (%) *</label>
-                <input
-                  value={editformData.pOffer}
-                  onChange={(e) =>
-                    setEditformdata({
-                      ...editformData,
-                      error: false,
-                      success: false,
-                      pOffer: e.target.value,
-                    })
-                  }
-                  type="number"
-                  className="px-4 py-2 border focus:outline-none"
-                  id="offer"
-                />
+
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => dispatch({ type: "editProductModalClose", payload: false })}
+                  className="px-4 py-2 border border-gray-300 rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Updating...' : 'Update Product'}
+                </button>
               </div>
-            </div>
-            <div className="flex flex-col space-y-1 w-full pb-4 md:pb-6 mt-4">
-              <button
-                style={{ background: "#303031" }}
-                type="submit"
-                className="rounded-full bg-gray-800 text-gray-100 text-lg font-medium py-2"
-              >
-                Update product
-              </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
     </Fragment>

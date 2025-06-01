@@ -1,11 +1,15 @@
-
 import { ref, uploadBytesResumable } from "firebase/storage";
 import { storage } from "../firebase";
 
-export const uploadImages = async (files) => {
+export const uploadImages = async (files, path = "products") => {
+  const validPaths = ["products", "category", "customize"];
+  if (!validPaths.includes(path)) {
+    throw new Error("Invalid upload path specified");
+  }
+
   const uploadPromises = files.map((file) => {
     return new Promise((resolve, reject) => {
-      const filePath = `products/${Date.now()}_${file.name}`;
+      const filePath = `${path}/${Date.now()}_${file.name}`;
       const storageRef = ref(storage, filePath);
       const uploadTask = uploadBytesResumable(storageRef, file);
 

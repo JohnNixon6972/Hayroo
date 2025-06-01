@@ -105,41 +105,39 @@ const ProductDetailsSection = (props) => {
       />
       <section className="m-4 md:mx-12 md:my-6">
         <div className="grid grid-cols-2 md:grid-cols-12">
-          <div className="hidden md:block md:col-span-1 md:flex md:flex-col md:space-y-4 md:mr-2">
+        <div className="hidden md:block md:col-span-1 md:flex md:flex-col md:space-y-4 md:mr-2">
+          {sProduct.pImages?.map((image, index) => (
             <img
-              onClick={(e) =>
-                slideImage("increase", 0, count, setCount, pImages)
-              }
+              key={index}
+              onClick={() => slideImage(null, index, count, setCount, sProduct.pImages)}
               className={`${
-                count === 0 ? "" : "opacity-25"
+                count === index ? "" : "opacity-25"
               } cursor-pointer w-20 h-20 object-cover object-center`}
-              src={`${sProduct.pImages[0]}`}
-              alt="pic"
+              src={`https://firebasestorage.googleapis.com/v0/b/${process.env.REACT_APP_STORAGE_BUCKET}/o/${encodeURIComponent(
+                image
+              )}?alt=media`}
+              alt={`Thumbnail ${index + 1}`}
             />
-            <img
-              onClick={(e) =>
-                slideImage("increase", 1, count, setCount, pImages)
-              }
-              className={`${
-                count === 1 ? "" : "opacity-25"
-              } cursor-pointer w-20 h-20 object-cover object-center`}
-              src={`${sProduct.pImages[1]}`}
-              alt="pic"
-            />
-          </div>
+          ))}
+        </div>
           <div className="col-span-2 md:col-span-7">
             <div className="relative">
-              <img
-                className="w-full"
-                src={`${sProduct.pImages[count]}`}
-                alt="Pic"
-              />
+              {sProduct.pImages?.[count] && (
+                <img
+                  className="w-full"
+                  src={`https://firebasestorage.googleapis.com/v0/b/${process.env.REACT_APP_STORAGE_BUCKET}/o/${encodeURIComponent(
+                    sProduct.pImages[count]
+                  )}?alt=media`}
+                  alt={`Product view ${count + 1}`}
+                />
+              )}
               <div className="absolute inset-0 flex justify-between items-center mb-4">
                 <svg
-                  onClick={(e) =>
-                    slideImage("increase", null, count, setCount, pImages)
-                  }
-                  className="flex justify-center  w-12 h-12 text-gray-700 opacity-25 cursor-pointer hover:text-yellow-700 hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    slideImage("decrease", null, count, setCount, sProduct.pImages);
+                  }}
+                  className="flex justify-center w-12 h-12 text-gray-700 opacity-25 cursor-pointer hover:text-yellow-700 hover:opacity-100"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -153,10 +151,11 @@ const ProductDetailsSection = (props) => {
                   />
                 </svg>
                 <svg
-                  onClick={(e) =>
-                    slideImage("increase", null, count, setCount, pImages)
-                  }
-                  className="flex justify-center  w-12 h-12 text-gray-700 opacity-25 cursor-pointer hover:text-yellow-700 hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    slideImage("increase", null, count, setCount, sProduct.pImages);
+                  }}
+                  className="flex justify-center w-12 h-12 text-gray-700 opacity-25 cursor-pointer hover:text-yellow-700 hover:opacity-100"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

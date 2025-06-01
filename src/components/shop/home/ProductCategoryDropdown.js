@@ -42,9 +42,12 @@ const CategoryList = () => {
                   className="col-span-1 m-2 flex flex-col items-center justify-center space-y-2 cursor-pointer"
                 >
                   <img
-                    src={`${item.cImage}`}
-                    alt="pic"
-                  />
+                    className="w-14 h-14 object-cover object-center"
+                    src={`https://firebasestorage.googleapis.com/v0/b/${process.env.REACT_APP_STORAGE_BUCKET}/o/${encodeURIComponent(
+                      item.cImage
+                    )}?alt=media`}
+                    alt="category"
+                    />
                   <div className="font-medium">{item?.cName}</div>
                 </div>
               </Fragment>

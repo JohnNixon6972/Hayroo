@@ -206,7 +206,9 @@ const CheckoutProducts = ({ products }) => {
                 <img
                   onClick={() => history.push(`/products/${product?._id}`)}
                   className="cursor-pointer md:h-20 md:w-?20 object-cover object-center"
-                  src={product?.pImages[0]}
+                   src={`https://firebasestorage.googleapis.com/v0/b/${process.env.REACT_APP_STORAGE_BUCKET}/o/${encodeURIComponent(
+                      product.pImages[0]
+                    )}?alt=media`}
                   alt={product?.pName}
                 />
                 <div className="text-lg md:ml-6 truncate">{product?.pName}</div>

@@ -101,7 +101,9 @@ const CartModal = () => {
                       <div className="text-white flex space-x-2 my-4 items-center">
                         <img
                           className="w-16 h-16 object-cover object-center"
-                          src={`${item.pImages[0]}`}
+                           src={`https://firebasestorage.googleapis.com/v0/b/${process.env.REACT_APP_STORAGE_BUCKET}/o/${encodeURIComponent(
+                      item.pImages[0]
+                    )}?alt=media`}
                           alt="cartProduct"
                         />
                         <div className="relative w-full flex flex-col">

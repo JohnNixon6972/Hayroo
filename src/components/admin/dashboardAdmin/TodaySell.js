@@ -100,7 +100,9 @@ const TodayOrderTable = ({ order }) => {
               <img
                 key={index}
                 className="w-12 h-12 object-cover"
-                src={item?._id?.pImages?.[0]}
+                src={`https://firebasestorage.googleapis.com/v0/b/${process.env.REACT_APP_STORAGE_BUCKET}/o/${encodeURIComponent(
+            item?._id?.pImages?.[0]
+          )}?alt=media`}
                 alt="Pic"
               />
             );

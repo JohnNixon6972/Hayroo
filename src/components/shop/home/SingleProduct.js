@@ -66,7 +66,9 @@ const SingleProduct = (props) => {
                 <img
                   onClick={(e) => history.push(`/products/${item._id}`)}
                   className="w-full object-cover object-center cursor-pointer"
-                  src={`${item.pImages[0]}`}
+                  src={`https://firebasestorage.googleapis.com/v0/b/${process.env.REACT_APP_STORAGE_BUCKET}/o/${encodeURIComponent(
+                      item.pImages[0]
+                    )}?alt=media`}
                   alt=""
                 />
                 <div className="flex items-center justify-between mt-2">
