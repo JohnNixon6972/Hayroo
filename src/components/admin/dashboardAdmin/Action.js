@@ -5,6 +5,8 @@ import {
   postDeleteImage,
 } from "./FetchApi";
 import { getAllOrder } from "../orders/FetchApi.js";
+import { uploadImages } from "../../../utils/uploadImages";
+import { deleteImages } from "../../../utils/deleteImages.js";
 
 export const GetAllData = async (dispatch) => {
   let responseData = await DashboardData();
@@ -31,38 +33,44 @@ export const sliderImages = async (dispatch) => {
   }
 };
 
-export const deleteImage = async (id, dispatch) => {
+export const deleteImage = async (item, dispatch) => {
   dispatch({ type: "imageUpload", payload: true });
+
   try {
-    let responseData = await postDeleteImage(id);
+    await deleteImages([item.slideImage], 'customize');
+
+    let responseData = await postDeleteImage(item._id);
+
     if (responseData && responseData.success) {
-      setTimeout(function () {
+      setTimeout(() => {
         sliderImages(dispatch);
         dispatch({ type: "imageUpload", payload: false });
       }, 1000);
     }
   } catch (error) {
-    console.log(error);
+    console.error("Error deleting image:", error);
+    dispatch({ type: "imageUpload", payload: false });
   }
 };
 
 export const uploadImage = async (image, dispatch) => {
   dispatch({ type: "imageUpload", payload: true });
-  let formData = new FormData();
-  formData.append("image", image);
-  console.log(formData.get("image"));
+  
   try {
-    let responseData = await postUploadImage(formData);
-
+    const uploadedImages = await uploadImages([image], "customize");
     
-
-    if (responseData && responseData.success) {
-      setTimeout(function () {
-        dispatch({ type: "imageUpload", payload: false });
-        sliderImages(dispatch);
-      }, 1000);
+    if (uploadedImages && uploadedImages.length > 0) {
+      const responseData = await postUploadImage({ imageToken: uploadedImages[0] });
+      
+      if (responseData && responseData.success) {
+        setTimeout(() => {
+          dispatch({ type: "imageUpload", payload: false });
+          sliderImages(dispatch);
+        }, 1000);
+      }
     }
   } catch (error) {
-    console.log(error);
+    console.error("Upload failed:", error);
+    dispatch({ type: "imageUpload", payload: false });
   }
 };

@@ -2,7 +2,7 @@ import React, { Fragment, useContext, useEffect } from "react";
 import { getAllCategory, deleteCategory } from "./FetchApi";
 import { CategoryContext } from "./index";
 import moment from "moment";
-
+import { deleteImages } from "../../../utils/deleteImages";
 const apiURL = process.env.REACT_APP_API_URL;
 
 const AllCategory = (props) => {
@@ -28,13 +28,28 @@ const AllCategory = (props) => {
     }, 1000);
   };
 
-  const deleteCategoryReq = async (cId) => {
-    let deleteC = await deleteCategory(cId);
-    if (deleteC.error) {
-      console.log(deleteC.error);
-    } else if (deleteC.success) {
-      console.log(deleteC.success);
-      fetchData();
+  const deleteCategoryReq = async (category) => {
+    try {
+      if (category.cImage) {
+        try {
+          await deleteImages([category.cImage]);
+          console.log("Category image deleted from storage");
+        } catch (imageError) {
+          console.error("Failed to delete category image:", imageError);
+          throw new Error("Could not delete category image");
+        }
+      }
+
+      const deleteC = await deleteCategory(category._id);
+      
+      if (deleteC.error) {
+        console.log(deleteC.error);
+      } else if (deleteC.success) {
+        console.log(deleteC.success);
+        fetchData();
+      }
+    } catch (error) {
+      console.error("Error in category deletion process:", error);
     }
   };
 
@@ -86,31 +101,24 @@ const AllCategory = (props) => {
               <th className="px-4 py-2 border">Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {categories && categories.length > 0 ? (
-              categories.map((item, key) => {
-                return (
-                  <CategoryTable
-                    category={item}
-                    editCat={(cId, type, des, status) =>
-                      editCategory(cId, type, des, status)
-                    }
-                    deleteCat={(cId) => deleteCategoryReq(cId)}
-                    key={key}
-                  />
-                );
-              })
-            ) : (
-              <tr>
-                <td
-                  colSpan="7"
-                  className="text-xl text-center font-semibold py-8"
-                >
-                  No category found
-                </td>
-              </tr>
-            )}
-          </tbody>
+         <tbody>
+          {categories && categories.length > 0 ? (
+            categories.map((item, key) => (
+              <CategoryTable
+                category={item}
+                editCat={(cId, type, des, status) => editCategory(cId, type, des, status)}
+                deleteCat={() => deleteCategoryReq(item)}  
+                key={key}
+              />
+            ))
+          ) : (
+            <tr>
+              <td colSpan="7" className="text-xl text-center font-semibold py-8">
+                No category found
+              </td>
+            </tr>
+          )}
+        </tbody>
         </table>
         <div className="text-sm text-gray-600 mt-2">
           Total {categories && categories.length} category found
@@ -136,11 +144,13 @@ const CategoryTable = ({ category, deleteCat, editCat }) => {
             : category.cDescription}
         </td>
         <td className="p-2 text-center">
-          <img
-            className="w-12 h-12 object-cover object-center"
-            src={`${category.cImage}`}
-            alt=""
-          />
+           <img
+        className="w-12 h-12 object-cover object-center"
+        src={`https://firebasestorage.googleapis.com/v0/b/${process.env.REACT_APP_STORAGE_BUCKET}/o/${encodeURIComponent(
+          category.cImage
+        )}?alt=media`}
+        alt="category"
+      />
         </td>
         <td className="p-2 text-center">
           {category.cStatus === "Active" ? (

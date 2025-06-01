@@ -51,25 +51,9 @@ export const createProduct = async ({
 
 export const editProduct = async (product) => {
   /* Most important part for updating multiple image  */
-  let formData = new FormData();
-  if (product.pEditImages) {
-    for (const file of product.pEditImages) {
-      formData.append("pEditImages", file);
-    }
-  }
-  /* Most important part for updating multiple image  */
-  formData.append("pId", product.pId);
-  formData.append("pName", product.pName);
-  formData.append("pDescription", product.pDescription);
-  formData.append("pStatus", product.pStatus);
-  formData.append("pCategory", product.pCategory);
-  formData.append("pQuantity", product.pQuantity);
-  formData.append("pPrice", product.pPrice);
-  formData.append("pOffer", product.pOffer);
-  formData.append("pImages", product.pImages);
 
   try {
-    let res = await axios.post(`${apiURL}/api/product/edit-product`, formData);
+    let res = await axios.post(`${apiURL}/api/product/edit-product`, product);
     return res.data;
   } catch (error) {
     console.log(error);
@@ -106,3 +90,15 @@ export const productByPrice = async (price) => {
     console.log(error);
   }
 };
+
+export const deleteMultipleProducts = async (productIds) => {
+  try {
+    let res = await axios.post(`${apiURL}/api/product/delete-multiple-products`, {
+      productIds,
+    });
+    return res.data;
+  } catch (error) {
+    console.log("Error deleting multiple products:", error);
+  }
+};
+

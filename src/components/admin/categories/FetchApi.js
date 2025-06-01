@@ -28,18 +28,15 @@ export const createCategory = async ({
   cDescription,
   cStatus,
 }) => {
-  let formData = new FormData();
-  formData.append("cImage", cImage);
-  formData.append("cName", cName);
-  formData.append("cDescription", cDescription);
-  formData.append("cStatus", cStatus);
+  const categoryData = {
+      cImage,
+      cName,
+      cDescription,
+      cStatus
+    };
 
   try {
-    let res = await axios.post(
-      `${apiURL}/api/category/add-category`,
-      formData,
-      Headers()
-    );
+    let res = await axios.post(`${apiURL}/api/category/add-category`, categoryData, Headers());
     return res.data;
   } catch (error) {
     console.log(error);
@@ -61,6 +58,7 @@ export const editCategory = async (cId, des, status) => {
 };
 
 export const deleteCategory = async (cId) => {
+  console.log("deleteCategory called with cId:", cId);
   try {
     let res = await axios.post(
       `${apiURL}/api/category/delete-category`,

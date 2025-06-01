@@ -100,7 +100,9 @@ const CategoryTable = ({ order, editOrder }) => {
               <span className="block flex items-center space-x-2" key={i}>
                 <img
                   className="w-8 h-8 object-cover object-center"
-                  src={product?._id?.pImages?.[0]}
+                   src={`https://firebasestorage.googleapis.com/v0/b/${process.env.REACT_APP_STORAGE_BUCKET}/o/${encodeURIComponent(
+                    product?._id?.pImages[0]
+                  )}?alt=media`}
                   alt="productImage"
                 />
                 <span>{product?._id?.pName}</span>

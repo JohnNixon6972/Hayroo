@@ -19,23 +19,8 @@ const Submenu = ({ category }) => {
             >
               Shop
             </span>
+            <span className="text-gray-400">/</span>
             <span className="text-yellow-700 cursor-default">{category}</span>
-          </div>
-          <div>
-            <svg
-              className="w-3 h-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 5l7 7-7 7M5 5l7 7-7 7"
-              />
-            </svg>
           </div>
         </div>
       </section>
@@ -60,7 +45,9 @@ const AllProduct = ({ products }) => {
                   <img
                     onClick={(e) => history.push(`/products/${item._id}`)}
                     className="w-full object-cover object-center cursor-pointer"
-                    src={`${item.pImages[0]}`}
+                     src={`https://firebasestorage.googleapis.com/v0/b/${process.env.REACT_APP_STORAGE_BUCKET}/o/${encodeURIComponent(
+                      item.pImages[0]
+                    )}?alt=media`}
                     alt=""
                   />
                   <div className="flex items-center justify-between mt-2">

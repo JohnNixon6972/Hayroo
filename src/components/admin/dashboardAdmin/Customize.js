@@ -126,8 +126,8 @@ const AllImages = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const deleteImageReq = (id) => {
-    deleteImage(id, dispatch);
+  const deleteImageReq = (item) => {
+    deleteImage(item, dispatch);
   };
 
   return (
@@ -159,11 +159,13 @@ const AllImages = () => {
               <div key={index} className="relative col-span-1 m-2 border">
                 <img
                   className="w-full md:h-32 object-center object-cover"
-                  src={`${item.slideImage}`}
+                  src={`https://firebasestorage.googleapis.com/v0/b/${process.env.REACT_APP_STORAGE_BUCKET}/o/${encodeURIComponent(
+            item.slideImage
+          )}?alt=media`}
                   alt="sliderImages"
                 />
                 <span
-                  onClick={(e) => deleteImageReq(item._id)}
+                  onClick={() => deleteImageReq(item)}
                   style={{ background: "#303031" }}
                   className="absolute top-0 right-0 m-1 text-white cursor-pointer rounded-full p-1"
                 >

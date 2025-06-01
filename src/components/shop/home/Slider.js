@@ -21,7 +21,9 @@ const Slider = (props) => {
         {data.sliderImages.length > 0 ? (
           <img
             className="w-full"
-            src={`${data.sliderImages[slide].slideImage}`}
+             src={`https://firebasestorage.googleapis.com/v0/b/${process.env.REACT_APP_STORAGE_BUCKET}/o/${encodeURIComponent(
+            data.sliderImages[slide].slideImage
+          )}?alt=media`}
             alt="sliderImage"
           />
         ) : (

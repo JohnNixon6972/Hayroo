@@ -70,7 +70,7 @@ const AddProductDetail = ({ categories }) => {
     setLoading(true); 
 
     try {
-      const imageUrls = await uploadImages(fData.pImages);
+      const imageUrls = await uploadImages(fData.pImages, 'products')
       const updatedProductData = {
         ...fData,
         pImages: imageUrls,
@@ -382,8 +382,8 @@ const AddProductModal = (props) => {
 
   const fetchCategoryData = async () => {
     let responseData = await getAllCategory();
-    if (responseData.Categories) {
-      setAllCat(responseData.Categories);
+    if (responseData?.Categories) {
+      setAllCat(responseData?.Categories);
     }
   };
 

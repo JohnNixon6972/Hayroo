@@ -36,16 +36,21 @@ export const updateQuantity = (
   }
 };
 
-export const slideImage = (type, active, count, setCount, pImages) => {
-  if (active === count) {
-    return true;
+export const slideImage = (type, active, count, setCount, pImages = []) => {
+  if (typeof active === 'number') {
+    setCount(active);
+    return;
   }
+
+  if (!pImages || pImages.length === 0) return;
+  
+  const lastIndex = pImages.length - 1;
+  
   if (type === "increase") {
-    if (count === pImages.length - 1) {
-      setCount(0);
-    } else if (count < pImages.length) {
-      setCount(count + 1);
-    }
+    setCount(count === lastIndex ? 0 : count + 1);
+  } 
+  else if (type === "decrease") {
+    setCount(count === 0 ? lastIndex : count - 1);
   }
 };
 

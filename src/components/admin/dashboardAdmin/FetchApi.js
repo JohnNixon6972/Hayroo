@@ -21,15 +21,16 @@ export const getSliderImages = async () => {
   }
 };
 
-export const postUploadImage = async (formData) => {
+export const postUploadImage = async (data) => {
   try {
     let res = await axios.post(
       `${apiURL}/api/customize/upload-slide-image`,
-      formData
+      data 
     );
     return res.data;
   } catch (error) {
-    console.log(error);
+    console.error("API call failed:", error);
+    throw error;
   }
 };
 
